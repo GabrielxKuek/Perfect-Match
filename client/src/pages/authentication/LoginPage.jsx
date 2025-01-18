@@ -1,22 +1,45 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom'; // Added useNavigate
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from 'lucide-react';
+import { Alert, AlertDescription } from "@/components/ui/alert"; 
+
+import { login } from "../../services/api/authentication";
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
-    email: '',
+    username: '', // Changed from email to username to match API
     password: ''
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add your login logic here
-    console.log('Login attempt with:', formData);
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const response = await login(formData);
+      
+      if (response.success) {
+        // Successful login
+        console.log('Login successful:', response.user);
+        
+        navigate('/signup/credentials'); // later i change this
+      } else {
+        setError(response.message || 'Login failed');
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'An error occurred during login');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -35,16 +58,21 @@ const LoginPage = () => {
           <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
+                id="username"
+                name="username"
+                type="text"
+                value={formData.username}
                 onChange={handleInputChange}
-                placeholder="Enter your email"
+                placeholder="Enter your username"
                 className="border-gray-300 focus:border-blue-500"
                 required
               />
@@ -78,8 +106,9 @@ const LoginPage = () => {
             <Button
               type="submit"
               className="w-full bg-[#FF3F00] hover:bg-[#ff5c26] mt-6"
+              disabled={isLoading}
             >
-              Log In
+              {isLoading ? "Logging in..." : "Log In"}
             </Button>
           </form>
         </CardContent>

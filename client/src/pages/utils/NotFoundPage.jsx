@@ -52,7 +52,7 @@ const NotFoundPage = () => {
             +65 8268 8969
           </a>
           <p className="text-lg text-black/70">
-            Include your information and a picture of yourself, what you're looking for in a relationship when reporting this issue.
+            Include your information, a picture of yourself, and what you're looking for in a relationship when reporting this issue.
           </p>
 
           {/* Sentiment Buttons */}

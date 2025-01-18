@@ -9,7 +9,6 @@ const api = axios.create({
     }
 });
 
-// what does this do
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -25,5 +24,16 @@ api.interceptors.request.use(
 
 export const signup = async (userData) => {
   const response = await api.post("/auth/signup", userData);
+  return response.data;
+};
+
+export const login = async (credentials) => {
+  const response = await api.post("/auth/login", credentials);
+  
+  if (response.data.success && response.data.token) {
+    localStorage.setItem("token", response.data.token);
+    localStorage.setItem("role", response.data.user.role);
+  }
+  
   return response.data;
 };
