@@ -89,7 +89,7 @@ const authenticationController = {
             },
             select: {
                 username: true,
-                password: true, // Needed for verification but won't be sent
+                password: true,
                 name: true,
                 birthday: true,
                 occupation: true,
