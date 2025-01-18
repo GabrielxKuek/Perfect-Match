@@ -1,60 +1,48 @@
+import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { MoveLeft, Search } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
+import { MoveLeft, AlertCircle } from 'lucide-react';
 
 const NotFoundPage = () => {
-  const handleGoBack = () => {
-    window.history.back();
-  };
-
-  const handleGoHome = () => {
-    window.location.href = '/';
-  };
+  const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 p-4">
-      <Card className="max-w-lg w-full">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-6">
-            {/* 404 Icon */}
-            <div className="relative mx-auto">
-              <Search className="w-24 h-24 text-gray-400 mx-auto" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-2xl font-bold text-gray-900">404</span>
-              </div>
-            </div>
-
-            {/* Error Message */}
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-                Page not found
-              </h1>
-              <p className="text-gray-500">
-                Sorry, we couldn&apos;t find the page you&apos;re looking for. It might have been
-                moved or deleted.
-              </p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button
-                variant="outline"
-                className="gap-2"
-                onClick={handleGoBack}
-              >
-                <MoveLeft className="w-4 h-4" />
-                Go Back
-              </Button>
-              <Button
-                className="gap-2"
-                onClick={handleGoHome}
-              >
-                Go Home
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
+      <div className="max-w-md w-full space-y-8 text-center">
+        {/* Error Icon */}
+        <div className="flex justify-center">
+          <AlertCircle className="h-24 w-24 text-destructive animate-pulse" />
+        </div>
+        
+        {/* Error Code */}
+        <h1 className="text-8xl font-bold text-foreground">404</h1>
+        
+        {/* Error Message */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold text-foreground">Page Not Found</h2>
+          <p className="text-muted-foreground">
+            Oops! The page you're looking for seems to have wandered off into the digital wilderness.
+          </p>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+          <Button 
+            variant="default"
+            className="flex items-center gap-2"
+            onClick={() => navigate('/')}
+          >
+            <MoveLeft className="h-4 w-4" />
+            Go Home
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => navigate(-1)}
+          >
+            Go Back
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
