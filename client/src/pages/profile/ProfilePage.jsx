@@ -35,7 +35,7 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await getUser(sessionStorage.getItem("username"));
+        const response = await getUser(localStorage.getItem("username"));
         if (response.success) {
           const user = response.user;
           setUserData({
