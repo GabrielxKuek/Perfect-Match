@@ -5,7 +5,7 @@ const authenticationController = require("../controllers/authenticationControlle
 
 // ROUTES
 // Public routes
-router.post("/register", authenticationController.register);
+router.post("/signup", authenticationController.signup);
 router.post("/login", authenticationController.login);
 
 // Protected routes

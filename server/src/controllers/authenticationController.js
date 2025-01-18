@@ -3,11 +3,11 @@ const authenticationModel = require('../models/authenticationModel');
 const prisma = new PrismaClient();
 
 const authenticationController = {
-    register: (req, res) => {
-        const { username, password, name, age, occupation, bio, role_id } = req.body;
+    signup: (req, res) => {
+        const { username, password, name, age, occupation, bio, role_id, gender } = req.body;
 
         // Basic input validation
-        if (!username || !password || !name || !age || !role_id) {
+        if (!username || !password || !name || !age || !role_id || !gender) {
             return res.status(400).json({
                 success: false,
                 message: 'Missing required fields'
@@ -60,7 +60,7 @@ const authenticationController = {
                 // Store token in session storage
                 res.status(201).json({
                     success: true,
-                    message: 'User registered successfully',
+                    message: 'User signuped successfully',
                     token: result.token,
                     user: result.user
                 });
