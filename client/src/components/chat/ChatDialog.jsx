@@ -42,6 +42,7 @@ const ChatDialog = ({
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -83,20 +84,26 @@ const ChatDialog = ({
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedUser) return;
+    if (!newMessage.trim() || !selectedUser || isSubmitting) return;
+
+    const messageContent = newMessage.trim();
+    setNewMessage(''); // Clear input immediately
+    setIsSubmitting(true); // Prevent duplicate submissions
 
     try {
       const response = await sendMessage(
         selectedUser.senderToImpersonate || currentUsername,
         selectedUser.username,
-        newMessage.trim()
+        messageContent
       );
       
       setMessages(prev => [...prev, response.data]);
-      setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
       setError('Failed to send message. Please try again.');
+      setNewMessage(messageContent); // Restore message if failed
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -199,11 +206,11 @@ const ChatDialog = ({
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder={`Type a message${isAdminView ? ` as ${selectedUser.senderToImpersonate}` : ''}...`}
             className="flex-1"
-            disabled={loading}
+            disabled={loading || isSubmitting}
           />
           <Button 
             type="submit" 
-            disabled={!newMessage.trim() || loading}
+            disabled={!newMessage.trim() || loading || isSubmitting}
             variant={isAdminView ? "destructive" : "default"}
           >
             <Send className="w-4 h-4" />
