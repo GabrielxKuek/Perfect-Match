@@ -15,6 +15,8 @@ const userModel = {
                     birthday: true,
                     occupation: true,
                     bio: true,
+                    profile_url: true,
+                    profile_public_id: true,
                     role: {
                         select: {
                             role_id: true,
@@ -82,6 +84,8 @@ const userModel = {
                     birthday: true,
                     occupation: true,
                     bio: true,
+                    profile_url: true,
+                    profile_public_id: true,
                     role: {
                         select: {
                             role_id: true,
@@ -163,6 +167,52 @@ const userModel = {
             throw new Error(`Error creating match: ${error.message}`);
         }
     },
+
+    updateUserProfileImage: async (username, imageData) => {
+        try {
+            const updatedUser = await prisma.users.update({
+                where: {
+                    username: username
+                },
+                data: {
+                    profile_url: imageData.url,
+                    profile_public_id: imageData.public_id
+                },
+                select: {
+                    username: true,
+                    profile_url: true,
+                    profile_public_id: true
+                }
+            });
+            return updatedUser;
+        } catch (error) {
+            console.error('Error in updateUserProfileImage:', error);
+            throw new Error('Error updating user profile image');
+        }
+    },
+
+    removeUserProfileImage: async (username) => {
+        try {
+            const updatedUser = await prisma.users.update({
+                where: {
+                    username: username
+                },
+                data: {
+                    profile_url: null,
+                    profile_public_id: null
+                },
+                select: {
+                    username: true,
+                    profile_url: true,
+                    profile_public_id: true
+                }
+            });
+            return updatedUser;
+        } catch (error) {
+            console.error('Error in removeUserProfileImage:', error);
+            throw new Error('Error removing user profile image');
+        }
+    }
 };
 
 // Handle cleanup when the application terminates

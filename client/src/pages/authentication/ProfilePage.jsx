@@ -86,7 +86,7 @@ const ProfilePage = ({ onSubmit, initialData }) => {
         onSubmit(submittedData);
         
         // Navigate to success page or login
-        navigate('/login');
+        navigate('/profile');
       } catch (error) {
         setErrors(prev => ({
           ...prev,

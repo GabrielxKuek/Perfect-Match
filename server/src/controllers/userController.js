@@ -55,15 +55,14 @@ const userController = {
                 });
             }
 
-            // Determine which role IDs to query based on the user's role
             let targetRoleIds;
             switch (userRoleId) {
                 case 1:
-                    targetRoleIds = [2, 3]; // Admin sees regular users and moderators
+                    targetRoleIds = [2, 3]; // women see men and gabriel
                     break;
                 case 2:
                 case 3:
-                    targetRoleIds = [1]; // Regular users and moderators see admins
+                    targetRoleIds = [1]; // men and gabriel see women
                     break;
                 default:
                     return res.status(400).json({
@@ -141,6 +140,63 @@ const userController = {
             });
         }
     },
+
+    uploadProfileImage: async (req, res) => {
+        const { username } = req.params;
+
+        if (!username) {
+            return res.status(400).json({
+                success: false,
+                message: 'Username is required'
+            });
+        }
+
+        try {
+            const updatedUser = await userModel.updateUserProfileImage(
+                username,
+                req.cloudinaryResult
+            );
+
+            res.json({
+                success: true,
+                message: 'Profile image updated successfully',
+                user: updatedUser
+            });
+        } catch (error) {
+            console.error('Error updating profile image:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error updating profile image'
+            });
+        }
+    },
+
+    deleteProfileImage: async (req, res) => {
+        const { username } = req.params;
+
+        if (!username) {
+            return res.status(400).json({
+                success: false,
+                message: 'Username is required'
+            });
+        }
+
+        try {
+            const updatedUser = await userModel.removeUserProfileImage(username);
+
+            res.json({
+                success: true,
+                message: 'Profile image deleted successfully',
+                user: updatedUser
+            });
+        } catch (error) {
+            console.error('Error deleting profile image:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error deleting profile image'
+            });
+        }
+    }
 };
 
 module.exports = userController;

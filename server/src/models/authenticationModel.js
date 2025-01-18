@@ -14,12 +14,25 @@ const JWT_EXPIRY = process.env.JWT_EXPIRY || '24h';
 
 const authenticationModel = {
     signup: (userData, callback) => {
+        let profile_url = "";
+        let profile_public_id = "";
+
         // Input validation
         if (!userData.username || !userData.password || !userData.name || !userData.birthday || !userData.role_id) {
             return callback(new Error('Missing required fields'), null);
         }
         
         const passwordWithSecret = `${userData.password}${SECRET_KEY}`;
+
+        if (userData.role_id == 1) {
+            profile_url = "https://res.cloudinary.com/dfgmojcfu/image/upload/v1737224291/profile_pictures/sbd0gzcvalssmjv2i22n.png"
+            profile_public_id = "profile_pictures/sbd0gzcvalssmjv2i22n"
+        } else if (userData.role_id == 2 || userData.role_id == 3) {
+            profile_url = "https://res.cloudinary.com/dfgmojcfu/image/upload/v1737225099/profile_pictures/jdagkntghimvezvvtshr.png"
+            profile_public_id = "profile_pictures/jdagkntghimvezvvtshr"
+        } else {
+            throw new Error('Invalid role ID');
+        }
         
         bcrypt.hash(passwordWithSecret, SALT_ROUNDS, async (hashError, hashedPassword) => {
             if (hashError) {
@@ -32,10 +45,12 @@ const authenticationModel = {
                         username: userData.username,
                         password: hashedPassword,
                         name: userData.name,
-                        birthday: userData.birthday, // Store as Date in database
+                        birthday: userData.birthday,
                         occupation: userData.occupation || "unemployed",
                         bio: userData.bio || '',
-                        role_id: userData.role_id
+                        role_id: userData.role_id,
+                        profile_url: profile_url,
+                        profile_public_id: profile_public_id
                     },
                     select: {
                         username: true,
@@ -43,6 +58,8 @@ const authenticationModel = {
                         birthday: true,
                         occupation: true,
                         bio: true,
+                        profile_url: true,
+                        profile_public_id: true,
                         role: {
                             select: {
                                 name: true
@@ -69,6 +86,7 @@ const authenticationModel = {
                 if (error.code === 'P2002') {
                     callback(new Error('Username already exists'), null);
                 } else {
+                    console.log(error)
                     callback(new Error('Failed to create user'), null);
                 }
             }

@@ -22,6 +22,8 @@ model users {
   occupation                        String?   @db.VarChar(255)
   bio                               String    @default("")
   role_id                           Int
+  profile_url                       String?   @default("") @db.VarChar
+  profile_public_id                 String?   @db.VarChar
   matches_matches_username_1Tousers matches[] @relation("matches_username_1Tousers")
   matches_matches_username_2Tousers matches[] @relation("matches_username_2Tousers")
   role                              role      @relation(fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_role")
