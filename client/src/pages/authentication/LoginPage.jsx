@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,33 +8,59 @@ import { Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Add your login logic here
+    console.log('Login attempt with:', formData);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#BEB7A4' }}>
-      <Card className="w-full max-w-md mx-4" style={{ backgroundColor: '#FFFFFC' }}>
+    <div className="min-h-screen flex items-center justify-center bg-[#BEB7A4]">
+      <Card className="w-full max-w-md mx-4 bg-[#FFFFFC]">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-black">Welcome Back</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
                 placeholder="Enter your email"
                 className="border-gray-300 focus:border-blue-500"
+                required
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <Input 
-                  id="password" 
+                <Input
+                  id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleInputChange}
                   placeholder="Enter your password"
                   className="border-gray-300 focus:border-blue-500 pr-10"
+                  required
                 />
                 <button
                   type="button"
@@ -48,25 +75,23 @@ const LoginPage = () => {
                 </button>
               </div>
             </div>
+            <Button
+              type="submit"
+              className="w-full bg-[#FF3F00] hover:bg-[#ff5c26] mt-6"
+            >
+              Log In
+            </Button>
           </form>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button 
-            className="w-full" 
-            style={{ backgroundColor: '#FF3F00' }}
-            hover={{ backgroundColor: '#ff5c26' }}
-          >
-            Log In
-          </Button>
           <p className="text-sm text-center">
             Don&apos;t have an account?{' '}
-            <a 
-              href="/signup" 
-              className="font-semibold"
-              style={{ color: '#318CE7' }}
+            <Link
+              to="/signup"
+              className="font-semibold text-[#318CE7] hover:underline"
             >
               Sign up
-            </a>
+            </Link>
           </p>
         </CardFooter>
       </Card>

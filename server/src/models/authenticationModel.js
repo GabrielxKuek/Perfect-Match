@@ -15,7 +15,7 @@ const JWT_EXPIRY = process.env.JWT_EXPIRY || '24h';
 const authenticationModel = {
     signup: (userData, callback) => {
         // Input validation
-        if (!userData.username || !userData.password || !userData.name || !userData.age || !userData.role_id) {
+        if (!userData.username || !userData.password || !userData.name || !userData.birthday || !userData.role_id) {
             return callback(new Error('Missing required fields'), null);
         }
         
@@ -32,17 +32,19 @@ const authenticationModel = {
                         username: userData.username,
                         password: hashedPassword,
                         name: userData.name,
-                        age: userData.age,
+                        birthday: userData.birthday, // Store as Date in database
                         occupation: userData.occupation || "unemployed",
                         bio: userData.bio || '',
-                        role_id: userData.role_id
+                        role_id: userData.role_id,
+                        gender: userData.gender
                     },
                     select: {
                         username: true,
                         name: true,
-                        age: true,
+                        birthday: true,
                         occupation: true,
                         bio: true,
+                        gender: true,
                         role: {
                             select: {
                                 name: true
@@ -50,16 +52,16 @@ const authenticationModel = {
                         }
                     }
                 });
-
+                
                 const token = jwt.sign(
-                    { 
+                    {
                         userId: user.username,
-                        role: user.role.name 
+                        role: user.role.name
                     },
                     JWT_SECRET,
                     { expiresIn: JWT_EXPIRY }
                 );
-
+                
                 callback(null, {
                     success: true,
                     user: user,
