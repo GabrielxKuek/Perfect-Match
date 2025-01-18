@@ -35,8 +35,7 @@ const authenticationModel = {
                         birthday: userData.birthday, // Store as Date in database
                         occupation: userData.occupation || "unemployed",
                         bio: userData.bio || '',
-                        role_id: userData.role_id,
-                        gender: userData.gender
+                        role_id: userData.role_id
                     },
                     select: {
                         username: true,
@@ -44,7 +43,6 @@ const authenticationModel = {
                         birthday: true,
                         occupation: true,
                         bio: true,
-                        gender: true,
                         role: {
                             select: {
                                 name: true
@@ -110,11 +108,13 @@ const authenticationModel = {
         try {
             const user = await prisma.users.findUnique({
                 where: {
-                    username: username
+                    username
                 }
             });
+            console.log("Query succeeded. User:", user);
             callback(null, !!user);
         } catch (error) {
+            console.error("Database query error:", error); // Log the real issue
             callback(error, null);
         }
     }

@@ -29,6 +29,7 @@ const CredentialsPage = ({ onSubmit }) => {
       return;
     }
     const { confirmPassword, ...submitData } = formData;
+    console.log(confirmPassword)
     onSubmit(submitData);
     navigate('/signup/personal');
   };

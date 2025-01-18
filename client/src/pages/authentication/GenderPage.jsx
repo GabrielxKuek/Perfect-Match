@@ -1,24 +1,49 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import SignupLayout from '../../components/signup/SignupLayout';
 
-const GenderPage = ({ onSubmit }) => {
-  const [selectedGender, setSelectedGender] = useState(null);
+const GenderPage = ({ onSubmit, initialData }) => {
+  // Initialize from session storage or initialData
+  const [selectedGender, setSelectedGender] = useState(() => {
+    const savedData = JSON.parse(sessionStorage.getItem('signupFormData') || '{}');
+    return savedData.role_id || initialData?.role_id || null;
+  });
+
   const navigate = useNavigate();
+
+  // Update session storage when gender selection changes
+  useEffect(() => {
+    if (selectedGender !== null) {
+      const savedData = JSON.parse(sessionStorage.getItem('signupFormData') || '{}');
+      sessionStorage.setItem('signupFormData', JSON.stringify({
+        ...savedData,
+        role_id: selectedGender
+      }));
+    }
+  }, [selectedGender]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (selectedGender) {
-      onSubmit({ role_id: selectedGender });
+      const submittedData = { role_id: selectedGender };
+      
+      // Update session storage with submitted data
+      const savedData = JSON.parse(sessionStorage.getItem('signupFormData') || '{}');
+      sessionStorage.setItem('signupFormData', JSON.stringify({
+        ...savedData,
+        ...submittedData
+      }));
+
+      onSubmit(submittedData);
       navigate('/signup/profile');
     }
   };
 
   return (
-    <SignupLayout 
-      title="Select Gender" 
+    <SignupLayout
+      title="Select Gender"
       description="Please select your gender"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -27,10 +52,10 @@ const GenderPage = ({ onSubmit }) => {
             type="button"
             onClick={() => setSelectedGender(1)}
             className={`
-              flex flex-col items-center justify-center p-6 rounded-lg border-2 
+              flex flex-col items-center justify-center p-6 rounded-lg border-2
               transition-all duration-200 hover:border-[#FF7F11]
-              ${selectedGender === 1 
-                ? 'border-[#FF7F11] bg-[#FF7F11]/10' 
+              ${selectedGender === 1
+                ? 'border-[#FF7F11] bg-[#FF7F11]/10'
                 : 'border-gray-200 bg-white'
               }
             `}
@@ -41,15 +66,14 @@ const GenderPage = ({ onSubmit }) => {
               Female
             </span>
           </button>
-
           <button
             type="button"
             onClick={() => setSelectedGender(2)}
             className={`
               flex flex-col items-center justify-center p-6 rounded-lg border-2
               transition-all duration-200 hover:border-[#FF7F11]
-              ${selectedGender === 2 
-                ? 'border-[#FF7F11] bg-[#FF7F11]/10' 
+              ${selectedGender === 2
+                ? 'border-[#FF7F11] bg-[#FF7F11]/10'
                 : 'border-gray-200 bg-white'
               }
             `}
@@ -61,17 +85,15 @@ const GenderPage = ({ onSubmit }) => {
             </span>
           </button>
         </div>
-
         <div className="space-y-4">
-          <Button 
+          <Button
             type="submit"
             className="w-full bg-[#FF7F11] hover:bg-[#FF7F11]/90 disabled:opacity-50"
             disabled={!selectedGender}
           >
             Continue
           </Button>
-
-          <Button 
+          <Button
             type="button"
             variant="outline"
             className="w-full"
@@ -86,7 +108,10 @@ const GenderPage = ({ onSubmit }) => {
 };
 
 GenderPage.propTypes = {
-  onSubmit: PropTypes.func.isRequired
+  onSubmit: PropTypes.func.isRequired,
+  initialData: PropTypes.shape({
+    role_id: PropTypes.number
+  })
 };
 
 export default GenderPage;

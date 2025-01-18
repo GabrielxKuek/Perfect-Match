@@ -4,10 +4,10 @@ const prisma = new PrismaClient();
 
 const authenticationController = {
     signup: (req, res) => {
-        const { username, password, name, birthday, occupation, bio, role_id, gender } = req.body;
+        const { username, password, name, birthday, occupation, bio, role_id } = req.body;
         
         // Basic input validation
-        if (!username || !password || !name || !birthday || !role_id || !gender) {
+        if (!username || !password || !name || !birthday || !role_id) {
             return res.status(400).json({
                 success: false,
                 message: 'Missing required fields'
@@ -54,8 +54,7 @@ const authenticationController = {
                 birthday: new Date(birthday), // Convert to Date object
                 occupation: occupation || 'unemployed',
                 bio: bio || '',
-                role_id: parseInt(role_id) || 1,
-                gender
+                role_id: parseInt(role_id) || 1
             };
     
             authenticationModel.signup(userData, (error, result) => {

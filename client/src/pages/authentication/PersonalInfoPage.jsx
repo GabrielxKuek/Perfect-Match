@@ -1,21 +1,35 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import SignupLayout from '../../components/signup/SignupLayout';
 
-const PersonalInfoPage = ({ onSubmit }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    birthday: ''
+const PersonalInfoPage = ({ onSubmit, initialData }) => {
+  // Initialize form data from session storage or initialData
+  const [formData, setFormData] = useState(() => {
+    const savedData = JSON.parse(sessionStorage.getItem('signupFormData') || '{}');
+    return {
+      name: savedData.name || initialData?.name || '',
+      birthday: savedData.birthday || initialData?.birthday || ''
+    };
   });
+
   const [errors, setErrors] = useState({
     name: '',
     birthday: ''
   });
   const navigate = useNavigate();
+
+  // Update session storage whenever form data changes
+  useEffect(() => {
+    const savedData = JSON.parse(sessionStorage.getItem('signupFormData') || '{}');
+    sessionStorage.setItem('signupFormData', JSON.stringify({
+      ...savedData,
+      ...formData
+    }));
+  }, [formData]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -51,10 +65,19 @@ const PersonalInfoPage = ({ onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit({
+      const submittedData = {
         name: formData.name.trim(),
         birthday: formData.birthday
-      });
+      };
+      
+      // Update session storage with submitted data
+      const savedData = JSON.parse(sessionStorage.getItem('signupFormData') || '{}');
+      sessionStorage.setItem('signupFormData', JSON.stringify({
+        ...savedData,
+        ...submittedData
+      }));
+      
+      onSubmit(submittedData);
       navigate('/signup/gender');
     }
   };
@@ -146,7 +169,11 @@ const PersonalInfoPage = ({ onSubmit }) => {
 };
 
 PersonalInfoPage.propTypes = {
-  onSubmit: PropTypes.func.isRequired
+  onSubmit: PropTypes.func.isRequired,
+  initialData: PropTypes.shape({
+    name: PropTypes.string,
+    birthday: PropTypes.string
+  })
 };
 
 export default PersonalInfoPage;

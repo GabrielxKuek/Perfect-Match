@@ -1,25 +1,38 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import SignupLayout from '../../components/signup/SignupLayout';
+import { Textarea } from "@/components/ui/textarea";
 import { signup } from "../../services/api/authentication";
 
-const ProfilePage = ({ onSubmit, allFormData }) => {
-  const [formData, setFormData] = useState({
-    occupation: '',
-    bio: ''
+const ProfilePage = ({ onSubmit, initialData }) => {
+  const [formData, setFormData] = useState(() => {
+    const savedData = JSON.parse(sessionStorage.getItem('signupFormData') || '{}');
+    return {
+      occupation: savedData.occupation || initialData?.occupation || '',
+      bio: savedData.bio || initialData?.bio || ''
+    };
   });
+
   const [errors, setErrors] = useState({
     occupation: '',
-    bio: ''
+    bio: '',
+    submit: ''
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedData = JSON.parse(sessionStorage.getItem('signupFormData') || '{}');
+    sessionStorage.setItem('signupFormData', JSON.stringify({
+      ...savedData,
+      ...formData
+    }));
+  }, [formData]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -31,10 +44,6 @@ const ProfilePage = ({ onSubmit, allFormData }) => {
     if (formData.bio.trim().length < 10) {
       newErrors.bio = 'Bio must be at least 10 characters long';
     }
-    
-    if (formData.bio.trim().length > 500) {
-      newErrors.bio = 'Bio must be less than 500 characters';
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -42,47 +51,50 @@ const ProfilePage = ({ onSubmit, allFormData }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitError('');
+    if (validateForm()) {
+      try {
+        setIsSubmitting(true);
+        setErrors(prev => ({ ...prev, submit: '' }));
 
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-        const finalData = {
-          ...allFormData,
+        const submittedData = {
           occupation: formData.occupation.trim(),
           bio: formData.bio.trim()
         };
-  
-        const response = await signup(finalData);
+
+        // Get all form data from session storage
+        const savedData = JSON.parse(sessionStorage.getItem('signupFormData') || '{}');
+        const allFormData = {
+          ...savedData,
+          ...submittedData
+        };
+
+        // Make signup API call with all form data
+        const response = await signup({
+          username: allFormData.username,
+          password: allFormData.password,
+          name: allFormData.name,
+          birthday: allFormData.birthday,
+          role_id: allFormData.role_id,
+          occupation: allFormData.occupation,
+          bio: allFormData.bio
+        });
+
+        // Clear session storage after successful signup
+        sessionStorage.removeItem('signupFormData');
         
-        if (response.data.success) {
-          // Store the user data in localStorage or your auth context
-          localStorage.setItem('user', JSON.stringify(response.data.user));
-          
-          // Call the onSubmit callback with both form data and user data
-          onSubmit({
-            ...formData,
-            user: response.data.user
-          });
-          
-          // Navigate to the appropriate page after successful signup
-          navigate('/dashboard'); // Or any other protected route
-        } else {
-          // Handle unsuccessful signup (status 200 but success: false)
-          setSubmitError(response.data.message || 'Signup was not successful. Please try again.');
-        }
+        // Call onSubmit with the final data
+        onSubmit(submittedData);
+        
+        // Navigate to success page or login
+        navigate('/login');
       } catch (error) {
-        console.error('Signup failed:', error);
-        setSubmitError(
-          error.response?.data?.message || 
-          'An error occurred during signup. Please try again.'
-        );
+        setErrors(prev => ({
+          ...prev,
+          submit: error.message || 'Failed to complete signup. Please try again.'
+        }));
       } finally {
         setIsSubmitting(false);
+      }
     }
   };
 
@@ -92,7 +104,6 @@ const ProfilePage = ({ onSubmit, allFormData }) => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -101,12 +112,9 @@ const ProfilePage = ({ onSubmit, allFormData }) => {
     }
   };
 
-  const characterCount = formData.bio.length;
-  const maxBioLength = 500;
-
   return (
     <SignupLayout 
-      title="Complete Your Profile" 
+      title="Complete Your Profile"
       description="Tell us more about yourself"
     >
       <form className="space-y-6" onSubmit={handleSubmit}>
@@ -117,7 +125,7 @@ const ProfilePage = ({ onSubmit, allFormData }) => {
             name="occupation"
             value={formData.occupation}
             onChange={handleInputChange}
-            placeholder="What do you do?"
+            placeholder="Enter your occupation"
             className="border-gray-300 focus:border-blue-500"
             required
           />
@@ -127,20 +135,14 @@ const ProfilePage = ({ onSubmit, allFormData }) => {
         </div>
 
         <div className="space-y-2">
-          <div className="flex justify-between">
-            <Label htmlFor="bio">Bio</Label>
-            <span className="text-sm text-gray-500">
-              {characterCount}/{maxBioLength}
-            </span>
-          </div>
+          <Label htmlFor="bio">Bio</Label>
           <Textarea
             id="bio"
             name="bio"
             value={formData.bio}
             onChange={handleInputChange}
-            placeholder="Tell us about yourself..."
-            className="min-h-32 border-gray-300 focus:border-blue-500"
-            maxLength={maxBioLength}
+            placeholder="Tell us about yourself"
+            className="border-gray-300 focus:border-blue-500 min-h-[100px]"
             required
           />
           {errors.bio && (
@@ -148,19 +150,17 @@ const ProfilePage = ({ onSubmit, allFormData }) => {
           )}
         </div>
 
-        {submitError && (
-          <div className="p-3 bg-red-100 border border-red-300 rounded-md">
-            <p className="text-red-500 text-sm">{submitError}</p>
-          </div>
+        {errors.submit && (
+          <p className="text-red-500 text-sm">{errors.submit}</p>
         )}
 
         <div className="space-y-4">
           <Button 
             type="submit"
-            className="w-full bg-[#FF7F11] hover:bg-[#FF7F11]/90 disabled:opacity-50"
+            className="w-full bg-[#FF7F11] hover:bg-[#FF7F11]/90"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Creating Account...' : 'Complete Signup'}
+            {isSubmitting ? 'Completing Signup...' : 'Complete Signup'}
           </Button>
 
           <Button 
@@ -180,13 +180,10 @@ const ProfilePage = ({ onSubmit, allFormData }) => {
 
 ProfilePage.propTypes = {
   onSubmit: PropTypes.func.isRequired,
-  allFormData: PropTypes.shape({
-    username: PropTypes.string.isRequired,
-    password: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    birthday: PropTypes.string.isRequired,
-    role_id: PropTypes.number.isRequired
-  }).isRequired
+  initialData: PropTypes.shape({
+    occupation: PropTypes.string,
+    bio: PropTypes.string
+  })
 };
 
 export default ProfilePage;

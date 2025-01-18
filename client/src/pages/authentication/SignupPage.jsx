@@ -12,10 +12,20 @@ const SIGNUP_STEPS = [
   '/signup/profile'
 ];
 
-const SignupWrapper = () => {
-  const [formData, setFormData] = useState({});
+const SignupPage = () => {
+  // Initialize formData from session storage
+  const [formData, setFormData] = useState(() => {
+    const savedData = JSON.parse(sessionStorage.getItem('signupFormData') || '{}');
+    return savedData;
+  });
+
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Sync formData with session storage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem('signupFormData', JSON.stringify(formData));
+  }, [formData]);
 
   // Prevent accessing steps out of order
   useEffect(() => {
@@ -39,60 +49,65 @@ const SignupWrapper = () => {
   }, [location.pathname, formData, navigate]);
 
   const handleFormUpdate = (stepData) => {
-    setFormData(prev => ({
-      ...prev,
-      ...stepData
-    }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        ...stepData
+      };
+      // Update session storage
+      sessionStorage.setItem('signupFormData', JSON.stringify(newData));
+      return newData;
+    });
   };
 
   return (
     <Routes>
-      <Route 
-        path="/" 
-        element={<Navigate to="/signup/credentials" replace />} 
+      <Route
+        path="/"
+        element={<Navigate to="/signup/credentials" replace />}
       />
-      <Route 
-        path="credentials" 
+      <Route
+        path="credentials"
         element={
-          <CredentialsPage 
-            onSubmit={handleFormUpdate} 
-            initialData={formData}
-          />
-        } 
-      />
-      <Route 
-        path="personal" 
-        element={
-          <PersonalInfoPage 
+          <CredentialsPage
             onSubmit={handleFormUpdate}
             initialData={formData}
           />
-        } 
+        }
       />
-      <Route 
-        path="gender" 
+      <Route
+        path="personal"
         element={
-          <GenderPage 
+          <PersonalInfoPage
             onSubmit={handleFormUpdate}
             initialData={formData}
           />
-        } 
+        }
       />
-      <Route 
-        path="profile" 
+      <Route
+        path="gender"
         element={
-          <ProfilePage 
+          <GenderPage
             onSubmit={handleFormUpdate}
-            allFormData={formData}
+            initialData={formData}
           />
-        } 
+        }
       />
-      <Route 
-        path="*" 
-        element={<Navigate to="/signup/credentials" replace />} 
+      <Route
+        path="profile"
+        element={
+          <ProfilePage
+            onSubmit={handleFormUpdate}
+            initialData={formData}
+          />
+        }
+      />
+      <Route
+        path="*"
+        element={<Navigate to="/signup/credentials" replace />}
       />
     </Routes>
   );
 };
 
-export default SignupWrapper;
+export default SignupPage;
