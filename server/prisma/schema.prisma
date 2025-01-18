@@ -26,15 +26,28 @@ model users {
   profile_public_id                 String?   @db.VarChar
   matches_matches_username_1Tousers matches[] @relation("matches_username_1Tousers")
   matches_matches_username_2Tousers matches[] @relation("matches_username_2Tousers")
+  message                           message[]
   role                              role      @relation(fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_role")
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model matches {
-  username_1                      String @db.VarChar(255)
-  username_2                      String @db.VarChar(255)
-  users_matches_username_1Tousers users  @relation("matches_username_1Tousers", fields: [username_1], references: [username], onDelete: NoAction, onUpdate: NoAction, map: "fk_username_1_users")
-  users_matches_username_2Tousers users  @relation("matches_username_2Tousers", fields: [username_2], references: [username], onDelete: NoAction, onUpdate: NoAction, map: "fk_username_2_users")
+  username_1                      String    @db.VarChar(255)
+  username_2                      String    @db.VarChar(255)
+  users_matches_username_1Tousers users     @relation("matches_username_1Tousers", fields: [username_1], references: [username], onDelete: NoAction, onUpdate: NoAction, map: "fk_username_1_users")
+  users_matches_username_2Tousers users     @relation("matches_username_2Tousers", fields: [username_2], references: [username], onDelete: NoAction, onUpdate: NoAction, map: "fk_username_2_users")
+  message                         message[]
 
   @@id([username_1, username_2])
+}
+
+model message {
+  message_id      Int      @id @default(autoincrement())
+  username_1      String   @db.VarChar(255)
+  username_2      String   @db.VarChar(255)
+  message         String
+  timestamp       DateTime @db.Time(6)
+  username_sender String   @db.VarChar(255)
+  matches         matches  @relation(fields: [username_1, username_2], references: [username_1, username_2], onDelete: NoAction, onUpdate: NoAction, map: "fk_message_matches")
+  users           users    @relation(fields: [username_sender], references: [username], onDelete: NoAction, onUpdate: NoAction, map: "fk_message_username_sender")
 }

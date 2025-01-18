@@ -12,10 +12,10 @@ import { getRandomUsers, createMatch } from '../../services/api/user';
 import { toast } from '@/hooks/use-toast';
 
 const SwipePage = () => {
-  const currentUsername = sessionStorage.getItem('username');
+  const currentUsername = localStorage.getItem('username');
   const [profiles, setProfiles] = useState([]);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const SWIPE_THRESHOLD = 200;
@@ -48,6 +48,10 @@ const SwipePage = () => {
     }
   };
 
+  useEffect(() => {
+    fetchProfiles();
+  }, []);
+
   const calculateAge = (birthday) => {
     const birthDate = new Date(birthday);
     const today = new Date();
@@ -58,12 +62,6 @@ const SwipePage = () => {
     }
     return age;
   };
-
-  useEffect(() => {
-    if (currentUsername && profiles.length === 0) {
-      fetchProfiles();
-    }
-  }, [currentUsername]);
 
   const handleMouseDown = (e) => {
     if (isDisappearing) return;
@@ -103,7 +101,6 @@ const SwipePage = () => {
     setDragOffset(offset);
     setIsDisappearing(true);
     
-    // If it's a right swipe, try to create a match
     if (direction === 'right' && currentProfileIndex < profiles.length) {
       try {
         const currentProfile = profiles[currentProfileIndex];
@@ -117,7 +114,6 @@ const SwipePage = () => {
           });
         }
       } catch (error) {
-        // Only show error if it's not a "match already exists" error
         if (!error.message.includes('Match already exists')) {
           toast({
             title: "Couldn't create match",
@@ -182,19 +178,12 @@ const SwipePage = () => {
     return (
       <Card className="w-full h-full flex items-center justify-center bg-[#FFFFFC] shadow-lg">
         <CardContent className="p-8 text-center max-w-md">
-          <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-            {message}
-          </h3>
-          <p className="text-lg text-gray-600 mb-8">
-            {subMessage}
-          </p>
+          <h3 className="text-2xl font-semibold text-gray-800 mb-4">{message}</h3>
+          <p className="text-lg text-gray-600 mb-8">{subMessage}</p>
           {isWoman && (
             <Button
               className="bg-[#318CE7] hover:bg-[#318CE7]/90 text-lg px-8 py-6 h-auto"
-              onClick={() => {
-                // Redirect to the LinkedIn profile
-                window.location.href = "https://www.linkedin.com/in/gabrielxkuek/";
-              }}
+              onClick={() => window.location.href = "https://www.linkedin.com/in/gabrielxkuek/"}
             >
               See Suggestions
             </Button>
