@@ -69,7 +69,7 @@ const ProfilePage = ({ onSubmit, initialData }) => {
         };
 
         // Make signup API call with all form data
-        const response = await signup({
+        await signup({
           username: allFormData.username,
           password: allFormData.password,
           name: allFormData.name,

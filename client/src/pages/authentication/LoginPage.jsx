@@ -31,7 +31,7 @@ const LoginPage = () => {
         // Successful login
         console.log('Login successful:', response.user);
         
-        navigate('/signup/credentials'); // later i change this
+        navigate('/profile');
       } else {
         setError(response.message || 'Login failed');
       }

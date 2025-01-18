@@ -32,7 +32,8 @@ export const login = async (credentials) => {
   
   if (response.data.success && response.data.token) {
     localStorage.setItem("token", response.data.token);
-    localStorage.setItem("role", response.data.user.role);
+    localStorage.setItem("role", response.data.user.role.name);
+    sessionStorage.setItem("username", response.data.user.username);
   }
   
   return response.data;

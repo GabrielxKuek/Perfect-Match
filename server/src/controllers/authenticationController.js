@@ -76,21 +76,31 @@ const authenticationController = {
 
     login: (req, res) => {
         const { username, password } = req.body;
-
         if (!username || !password) {
             return res.status(400).json({
                 success: false,
                 message: 'Username and password are required'
             });
         }
-
-        // Find user by username
+        // Find user by username with all relevant fields
         prisma.users.findUnique({
             where: {
                 username: username
             },
-            include: {
-                role: true
+            select: {
+                username: true,
+                password: true, // Needed for verification but won't be sent
+                name: true,
+                birthday: true,
+                occupation: true,
+                bio: true,
+                role: {
+                    select: {
+                        role_id: true,
+                        name: true,
+                        description: true
+                    }
+                }
             }
         }).then(user => {
             if (!user) {
@@ -99,7 +109,6 @@ const authenticationController = {
                     message: 'Invalid username or password'
                 });
             }
-
             // Verify password
             authenticationModel.verifyPassword(password, user.password, (error, isMatch) => {
                 if (error) {
@@ -108,26 +117,34 @@ const authenticationController = {
                         message: 'Error verifying password'
                     });
                 }
-
                 if (!isMatch) {
                     return res.status(401).json({
                         success: false,
                         message: 'Invalid username or password'
                     });
                 }
-
                 // Generate token
                 const token = authenticationModel.generateToken(user);
-
+    
+                // Create user response object without password
+                const userResponse = {
+                    username: user.username,
+                    name: user.name,
+                    birthday: user.birthday,
+                    occupation: user.occupation,
+                    bio: user.bio,
+                    role: {
+                        role_id: user.role.role_id,
+                        name: user.role.name,
+                        description: user.role.description
+                    }
+                };
+    
                 res.json({
                     success: true,
                     message: 'Login successful',
                     token: token,
-                    user: {
-                        username: user.username,
-                        name: user.name,
-                        role: user.role.name
-                    }
+                    user: userResponse
                 });
             });
         }).catch(error => {
