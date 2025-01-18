@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import SignupWrapper from "./pages/authentication/SignupPage";
 import LoginPage from "./pages/authentication/LoginPage";
 import NotFoundPage from "./pages/utils/NotFoundPage";
+import RedirectPage from "./pages/utils/RedirectPage";
 
 function App() {
     return (
@@ -10,6 +11,7 @@ function App() {
             <Routes>
                 <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="/signup/*" element={<SignupWrapper />} />
+                <Route path="/redirect/*" element={<RedirectPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>
