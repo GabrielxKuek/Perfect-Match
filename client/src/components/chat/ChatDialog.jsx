@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { UserCircle, Send } from 'lucide-react';
+import { UserCircle, Send, AlertCircle } from 'lucide-react';
 import { getConversation, sendMessage } from '../../services/api/chat';
 
 // Type definitions
@@ -15,17 +15,29 @@ const MessageType = PropTypes.shape({
     username: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     profile_url: PropTypes.string
-  }).isRequired
+  }).isRequired,
+  receiver: PropTypes.shape({
+    username: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    profile_url: PropTypes.string
+  })
 });
 
 const UserType = PropTypes.shape({
   username: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   profileUrl: PropTypes.string,
-  role: PropTypes.string
+  role: PropTypes.string,
+  senderToImpersonate: PropTypes.string
 });
 
-const ChatDialog = ({ isOpen, onClose, selectedUser, currentUsername }) => {
+const ChatDialog = ({ 
+  isOpen = false, 
+  onClose, 
+  selectedUser = null, 
+  currentUsername,
+  isAdminView = false
+}) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,7 +52,6 @@ const ChatDialog = ({ isOpen, onClose, selectedUser, currentUsername }) => {
     if (isOpen && selectedUser) {
       fetchMessages();
     } else {
-      // Clear messages when dialog closes
       setMessages([]);
       setNewMessage('');
       setError(null);
@@ -52,10 +63,15 @@ const ChatDialog = ({ isOpen, onClose, selectedUser, currentUsername }) => {
   }, [messages]);
 
   const fetchMessages = async () => {
+    if (!selectedUser) return;
+    
     try {
       setLoading(true);
       setError(null);
-      const response = await getConversation(currentUsername, selectedUser.username);
+      const response = await getConversation(
+        selectedUser.senderToImpersonate || currentUsername,
+        selectedUser.username
+      );
       setMessages(response.messages);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -67,11 +83,11 @@ const ChatDialog = ({ isOpen, onClose, selectedUser, currentUsername }) => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !selectedUser) return;
 
     try {
       const response = await sendMessage(
-        currentUsername,
+        selectedUser.senderToImpersonate || currentUsername,
         selectedUser.username,
         newMessage.trim()
       );
@@ -91,12 +107,14 @@ const ChatDialog = ({ isOpen, onClose, selectedUser, currentUsername }) => {
     });
   };
 
+  if (!selectedUser) return null;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
         <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle className="flex items-center gap-3">
-            {selectedUser?.profileUrl ? (
+            {selectedUser.profileUrl ? (
               <img
                 src={selectedUser.profileUrl}
                 alt={selectedUser.name}
@@ -105,7 +123,15 @@ const ChatDialog = ({ isOpen, onClose, selectedUser, currentUsername }) => {
             ) : (
               <UserCircle className="w-10 h-10 text-gray-400" />
             )}
-            <span>{selectedUser?.name}</span>
+            <div className="flex flex-col">
+              <span>{selectedUser.name}</span>
+              {isAdminView && selectedUser.senderToImpersonate && (
+                <div className="flex items-center gap-1 text-xs text-red-600">
+                  <AlertCircle className="w-3 h-3" />
+                  <span>Sending as {selectedUser.senderToImpersonate}</span>
+                </div>
+              )}
+            </div>
           </DialogTitle>
         </DialogHeader>
 
@@ -127,22 +153,32 @@ const ChatDialog = ({ isOpen, onClose, selectedUser, currentUsername }) => {
               <div
                 key={message.message_id}
                 className={`flex ${
-                  message.sender.username === currentUsername
+                  message.sender.username === (selectedUser.senderToImpersonate || currentUsername)
                     ? 'justify-end'
                     : 'justify-start'
                 }`}
               >
                 <div
                   className={`max-w-[70%] ${
-                    message.sender.username === currentUsername
-                      ? 'bg-[#318CE7] text-white rounded-l-lg rounded-tr-lg'
+                    message.sender.username === (selectedUser.senderToImpersonate || currentUsername)
+                      ? isAdminView 
+                        ? 'bg-red-500 text-white rounded-l-lg rounded-tr-lg'
+                        : 'bg-[#318CE7] text-white rounded-l-lg rounded-tr-lg'
                       : 'bg-gray-200 text-black rounded-r-lg rounded-tl-lg'
                   } px-4 py-2`}
                 >
+                  {isAdminView && (
+                    <p className="text-xs mb-1 opacity-75">
+                      {message.sender.username === selectedUser.senderToImpersonate 
+                        ? 'Sent by ' + message.sender.name
+                        : 'Received by ' + message.receiver.name
+                      }
+                    </p>
+                  )}
                   <p className="break-words">{message.content}</p>
                   <p className={`text-xs mt-1 ${
-                    message.sender.username === currentUsername
-                      ? 'text-blue-100'
+                    message.sender.username === (selectedUser.senderToImpersonate || currentUsername)
+                      ? isAdminView ? 'text-red-100' : 'text-blue-100'
                       : 'text-gray-500'
                   }`}>
                     {formatTimestamp(message.timestamp)}
@@ -161,11 +197,15 @@ const ChatDialog = ({ isOpen, onClose, selectedUser, currentUsername }) => {
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
+            placeholder={`Type a message${isAdminView ? ` as ${selectedUser.senderToImpersonate}` : ''}...`}
             className="flex-1"
             disabled={loading}
           />
-          <Button type="submit" disabled={!newMessage.trim() || loading}>
+          <Button 
+            type="submit" 
+            disabled={!newMessage.trim() || loading}
+            variant={isAdminView ? "destructive" : "default"}
+          >
             <Send className="w-4 h-4" />
           </Button>
         </form>
@@ -178,7 +218,8 @@ ChatDialog.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   selectedUser: UserType,
-  currentUsername: PropTypes.string.isRequired
+  currentUsername: PropTypes.string.isRequired,
+  isAdminView: PropTypes.bool
 };
 
 export default ChatDialog;

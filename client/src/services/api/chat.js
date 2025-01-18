@@ -22,6 +22,40 @@ api.interceptors.request.use(
     }
 );
 
+export const getAdminMessages = async () => {
+    try {
+        console.log('Fetching admin messages...');
+        const response = await api.get('/chat/messages/gabriel');
+        console.log('Admin messages response:', response.data);
+        
+        return response.data;
+    } catch (error) {
+        console.error('Error in getAdminMessages:', error);
+        
+        if (error.response) {
+            // Server responded with error
+            const errorMessage = error.response.data.message || 'Error fetching admin messages';
+            
+            switch (error.response.status) {
+                case 401:
+                    throw new Error('Unauthorized: Please login as admin');
+                case 403:
+                    throw new Error('Forbidden: Admin access required');
+                case 404:
+                    throw new Error('No messages found');
+                default:
+                    throw new Error(errorMessage);
+            }
+        } else if (error.request) {
+            // No response received
+            throw new Error('No response from server. Please check your connection.');
+        } else {
+            // Request setup error
+            throw new Error('Error setting up request');
+        }
+    }
+};
+
 export const getUserMatches = async (username) => {
     try {
         const response = await api.get(`/chat/matches/${username}`);

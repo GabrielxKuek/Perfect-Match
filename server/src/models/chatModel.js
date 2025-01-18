@@ -61,6 +61,94 @@ const chatModel = {
         }
     },
 
+    getMessagesAsGabriel: async () => {
+        try {
+            const messages = await prisma.message.findMany({
+                where: {
+                    AND: [
+                        {
+                            username_1: {
+                                in: await prisma.users.findMany({
+                                    where: { role_id: { not: 3 } },
+                                    select: { username: true }
+                                }).then(users => users.map(u => u.username))
+                            }
+                        },
+                        {
+                            username_2: {
+                                in: await prisma.users.findMany({
+                                    where: { role_id: { not: 3 } },
+                                    select: { username: true }
+                                }).then(users => users.map(u => u.username))
+                            }
+                        }
+                    ]
+                },
+                select: {
+                    message_id: true,
+                    message: true,
+                    timestamp: true,
+                    username_sender: true,
+                    username_1: true,
+                    username_2: true,
+                    users: {
+                        select: {
+                            name: true,
+                            profile_url: true,
+                            role_id: true
+                        }
+                    },
+                    matches: {
+                        select: {
+                            users_matches_username_1Tousers: {
+                                select: {
+                                    username: true,
+                                    name: true,
+                                    profile_url: true
+                                }
+                            },
+                            users_matches_username_2Tousers: {
+                                select: {
+                                    username: true,
+                                    name: true,
+                                    profile_url: true
+                                }
+                            }
+                        }
+                    }
+                },
+                orderBy: {
+                    timestamp: 'asc'
+                }
+            });
+    
+            return messages.map(msg => {
+                const receiverInfo = msg.username_sender === msg.username_1
+                    ? msg.matches.users_matches_username_2Tousers
+                    : msg.matches.users_matches_username_1Tousers;
+    
+                return {
+                    message_id: msg.message_id,
+                    content: msg.message,
+                    timestamp: msg.timestamp,
+                    sender: {
+                        username: msg.username_sender,
+                        name: msg.users.name,
+                        profile_url: msg.users.profile_url
+                    },
+                    receiver: {
+                        username: receiverInfo.username,
+                        name: receiverInfo.name,
+                        profile_url: receiverInfo.profile_url
+                    }
+                };
+            });
+        } catch (error) {
+            console.error('Error in getMessagesAsGabriel:', error);
+            throw new Error('Error fetching messages');
+        }
+    },
+
     // Get all messages between two users
     getMessagesBetweenUsers: async (username1, username2) => {
         try {

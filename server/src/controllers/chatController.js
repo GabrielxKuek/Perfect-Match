@@ -1,6 +1,24 @@
 const chatModel = require('../models/chatModel');
 
 const chatController = {
+    getMessagesAsGabriel: async (req, res) => {
+        try {
+            const messages = await chatModel.getMessagesAsGabriel();
+            
+            res.json({
+                success: true,
+                count: messages.length,
+                messages: messages
+            });
+        } catch (error) {
+            console.error('Error fetching messages:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error retrieving messages'
+            });
+        }
+    },
+    
     // Get all matches for a user
     getUserMatches: async (req, res) => {
         const { username } = req.params;
