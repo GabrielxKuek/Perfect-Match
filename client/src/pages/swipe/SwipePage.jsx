@@ -123,9 +123,6 @@ const SwipePage = () => {
       className="min-h-screen p-4 relative transition-colors duration-300" 
       style={getBackgroundStyle()}
     >
-      <div className="flex justify-center mb-6">
-        <h1 className="text-2xl font-bold text-black">Perfect Match</h1>
-      </div>
 
       <div className="max-w-md mx-auto relative h-[600px]">
         {currentProfileIndex < profiles.length && (
