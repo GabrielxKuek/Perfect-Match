@@ -30,6 +30,7 @@ const BottomNavbar = () => {
     { label: "Login", to: "/login" },
     { label: "Profile", to: "/profile" },
     { label: "Swipe", to: "/swipe" },
+    { label: "Chat", to: "/chat" },
     { label: "Not Found", to: "/some-nonexistent-route" }, // Example for testing 404
   ];
 
