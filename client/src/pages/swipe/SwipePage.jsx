@@ -15,6 +15,7 @@ import {
 import { getRandomUsers, createMatch } from '../../services/api/user';
 import { toast } from '@/hooks/use-toast';
 import AreYouSure from '../../components/annoying/AreYouSure';
+import SnakeGame from '../../components/annoying/SnakeGame';
 
 const SwipePage = () => {
   const currentUsername = localStorage.getItem('username');
@@ -24,6 +25,7 @@ const SwipePage = () => {
   const [error, setError] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [counter, setCounter] = useState(0);
 
   const SWIPE_THRESHOLD = 200;
   
@@ -353,7 +355,7 @@ const SwipePage = () => {
                 </DialogContent>
               </Dialog>
 
-              {profiles[currentProfileIndex]?.roleName === 'gabriel' && (
+              {profiles[currentProfileIndex]?.roleName === 'gabriel' && counter % 2 === 0 && (
                 <AreYouSure
                   isOpen={showConfirmation}
                   onClose={() => {
@@ -364,6 +366,23 @@ const SwipePage = () => {
                   onConfirm={() => {
                     setShowConfirmation(false);
                     handleSwipe('left');
+                    setCounter(prevCounter => prevCounter + 1); // Increment counter after confirmation
+                  }}
+                  profile={currentProfile}
+                />
+              )}
+              {profiles[currentProfileIndex]?.roleName === 'gabriel' && counter % 2 === 1 && (
+                <SnakeGame
+                  isOpen={showConfirmation}
+                  onClose={() => {
+                    setShowConfirmation(false);
+                    setDragOffset(0);
+                    setSwipeDirection(null);
+                  }}
+                  onConfirm={() => {
+                    setShowConfirmation(false);
+                    handleSwipe('left');
+                    setCounter(prevCounter => prevCounter + 1); // Optional: increment counter after SnakeGame too
                   }}
                   profile={currentProfile}
                 />
