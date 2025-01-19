@@ -5,6 +5,7 @@ import NotFoundPage from "./pages/utils/NotFoundPage";
 import ProfilePage from "./pages/profile/ProfilePage";
 import SwipePage from "./pages/swipe/SwipePage";
 import ChatPage from "./pages/chat/ChatPage";
+import StandoutPage from "./pages/standout/StandoutPage";
 import BottomNavbar from "./components/navbar/BottomNavbar";
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
                     <Route path="*" element={<NotFoundPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/swipe" element={<SwipePage />} />
+                    <Route path="/standouts" element={<StandoutPage />} />
                     <Route path="/chat" element={<ChatPage />} />
                 </Routes>
                 <BottomNavbar />

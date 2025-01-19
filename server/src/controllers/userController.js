@@ -196,6 +196,24 @@ const userController = {
                 message: 'Error deleting profile image'
             });
         }
+    },
+
+    getGabrielProfiles: async (req, res) => {
+        try {
+            const profiles = await userModel.getRandomGabrielProfiles();
+            
+            res.json({
+                success: true,
+                count: profiles.length,
+                profiles: profiles
+            });
+        } catch (error) {
+            console.error('Error fetching Gabriel profiles:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error retrieving Gabriel profiles'
+            });
+        }
     }
 };
 

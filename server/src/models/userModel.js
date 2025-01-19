@@ -212,6 +212,51 @@ const userModel = {
             console.error('Error in removeUserProfileImage:', error);
             throw new Error('Error removing user profile image');
         }
+    },
+
+    getRandomGabrielProfiles: async () => {
+        try {
+            // Get all Gabriel profiles first
+            const gabrielProfiles = await prisma.users.findMany({
+                where: {
+                    role_id: 3  // Role ID for Gabriel
+                },
+                select: {
+                    username: true,
+                    name: true,
+                    birthday: true,
+                    occupation: true,
+                    bio: true,
+                    profile_url: true,
+                    profile_public_id: true,
+                    role: {
+                        select: {
+                            role_id: true,
+                            name: true,
+                            description: true
+                        }
+                    }
+                }
+            });
+    
+            // Shuffle the array using Fisher-Yates algorithm
+            for (let i = gabrielProfiles.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [gabrielProfiles[i], gabrielProfiles[j]] = [gabrielProfiles[j], gabrielProfiles[i]];
+            }
+    
+            // Take only the first 10 profiles
+            const randomProfiles = gabrielProfiles.slice(0, 10);
+    
+            if (randomProfiles.length < 10) {
+                console.warn(`Only found ${randomProfiles.length} Gabriel profiles`);
+            }
+    
+            return randomProfiles;
+        } catch (error) {
+            console.error('Error in getRandomGabrielProfiles:', error);
+            throw new Error('Error fetching Gabriel profiles');
+        }
     }
 };
 

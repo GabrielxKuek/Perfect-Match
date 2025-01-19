@@ -18,4 +18,6 @@ router.delete('/profile-image/:username',
     userController.deleteProfileImage
 );
 
+router.get('/gabriel-profiles', userController.getGabrielProfiles);
+
 module.exports = router;

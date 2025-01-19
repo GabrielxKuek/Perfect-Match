@@ -154,3 +154,18 @@ export const getProfileImage = async (username) => {
         }
     }
 };
+
+export const getGabrielProfiles = async () => {
+    try {
+        const response = await api.get('/user/gabriel-profiles');
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw new Error(error.response.data.message || 'Error fetching Gabriel profiles');
+        } else if (error.request) {
+            throw new Error('No response from server');
+        } else {
+            throw new Error('Error setting up request');
+        }
+    }
+};

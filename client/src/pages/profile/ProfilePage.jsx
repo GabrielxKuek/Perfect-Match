@@ -325,17 +325,6 @@ const ProfilePage = () => {
           </CardContent>
         </Card>
 
-        {/* Additional Profile Sections */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="p-6" style={{ backgroundColor: '#FFFFFC' }}>
-            <h3 className="text-lg font-semibold mb-4" style={{ color: '#000000' }}>Interests</h3>
-            {/* Add interests section content */}
-          </Card>
-          <Card className="p-6" style={{ backgroundColor: '#FFFFFC' }}>
-            <h3 className="text-lg font-semibold mb-4" style={{ color: '#000000' }}>Looking For</h3>
-            {/* Add preferences section content */}
-          </Card>
-        </div>
       </div>
     </div>
   );

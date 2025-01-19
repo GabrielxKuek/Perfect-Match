@@ -1,12 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { 
   Heart, 
   X, 
   UserCircle, 
   Briefcase,
-  Loader2
+  Loader2,
+  Eye,
+  Calendar,
+  MapPin
 } from 'lucide-react';
 import { getRandomUsers, createMatch } from '../../services/api/user';
 import { toast } from '@/hooks/use-toast';
@@ -17,6 +21,7 @@ const SwipePage = () => {
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showProfile, setShowProfile] = useState(false);
 
   const SWIPE_THRESHOLD = 200;
   
@@ -38,7 +43,8 @@ const SwipePage = () => {
           age: calculateAge(user.birthday),
           occupation: user.occupation,
           bio: user.bio,
-          interests: []
+          interests: [],
+          profileUrl: user.profile_url
         })));
       }
     } catch (err) {
@@ -166,6 +172,72 @@ const SwipePage = () => {
     };
   };
 
+  const ProfileCard = ({ profile, expanded = false }) => {
+    return (
+      <div className={`space-y-4 ${expanded ? 'p-4' : ''}`}>
+        <div className={`${expanded ? 'h-96' : 'h-64'} w-full rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden`}>
+          {profile.profileUrl ? (
+            <img 
+              src={profile.profileUrl} 
+              alt={`${profile.name}'s profile`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <UserCircle className="w-32 h-32 text-[#318CE7]" />
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-gray-800">
+              {profile.name}, {profile.age}
+            </h2>
+            {!expanded && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowProfile(true);
+                }}
+                className="hover:bg-gray-100"
+              >
+                <Eye className="w-5 h-5 text-gray-600" />
+              </Button>
+            )}
+          </div>
+
+          <div className="flex items-center text-gray-600">
+            <Briefcase className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span>{profile.occupation}</span>
+          </div>
+
+          {expanded && (
+            <div className="flex items-center text-gray-600">
+              <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span>{profile.age} years old</span>
+            </div>
+          )}
+
+          <p className="text-gray-700 leading-relaxed">{profile.bio}</p>
+
+          {profile.interests?.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {profile.interests.map((interest, index) => (
+                <span 
+                  key={index}
+                  className="px-3 py-1 rounded-full text-sm bg-[#318CE7] text-[#FFFFFC]"
+                >
+                  {interest}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const EmptyStateMessage = () => {
     const isWoman = localStorage.getItem('role') === 'woman';
     const message = isWoman
@@ -222,6 +294,8 @@ const SwipePage = () => {
     );
   }
 
+  const currentProfile = profiles[currentProfileIndex];
+
   return (
     <div 
       className="min-h-screen p-4 relative transition-colors duration-300" 
@@ -229,48 +303,26 @@ const SwipePage = () => {
     >
       <div className="max-w-md mx-auto relative h-[600px]">
         {profiles.length > 0 && currentProfileIndex < profiles.length ? (
-          <Card 
-            className="absolute w-full transform bg-[#FFFFFC] cursor-grab active:cursor-grabbing shadow-xl"
-            style={getCardStyle()}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-          >
-            <CardContent className="p-6">
-              <div className="w-full h-64 rounded-lg bg-gray-100 flex items-center justify-center mb-4">
-                <UserCircle className="w-32 h-32 text-[#318CE7]" />
-              </div>
+          <>
+            <Card 
+              className="absolute w-full transform bg-[#FFFFFC] cursor-grab active:cursor-grabbing shadow-xl"
+              style={getCardStyle()}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
+              <CardContent className="p-6">
+                <ProfileCard profile={currentProfile} />
+              </CardContent>
+            </Card>
 
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold text-gray-800">
-                    {profiles[currentProfileIndex].name}, {profiles[currentProfileIndex].age}
-                  </h2>
-                </div>
-
-                <div className="flex items-center text-gray-600">
-                  <Briefcase className="w-4 h-4 mr-2" />
-                  {profiles[currentProfileIndex].occupation}
-                </div>
-
-                <p className="text-gray-700 leading-relaxed">{profiles[currentProfileIndex].bio}</p>
-
-                {profiles[currentProfileIndex].interests?.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {profiles[currentProfileIndex].interests.map((interest, index) => (
-                      <span 
-                        key={index}
-                        className="px-3 py-1 rounded-full text-sm bg-[#318CE7] text-[#FFFFFC]"
-                      >
-                        {interest}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+            <Dialog open={showProfile} onOpenChange={setShowProfile}>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <ProfileCard profile={currentProfile} expanded={true} />
+              </DialogContent>
+            </Dialog>
+          </>
         ) : (
           <EmptyStateMessage />
         )}
