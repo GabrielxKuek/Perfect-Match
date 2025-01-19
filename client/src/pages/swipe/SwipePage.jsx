@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { getRandomUsers, createMatch } from '../../services/api/user';
 import { toast } from '@/hooks/use-toast';
+import AreYouSure from '../../components/annoying/AreYouSure';
 
 const SwipePage = () => {
   const currentUsername = localStorage.getItem('username');
@@ -22,6 +23,7 @@ const SwipePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const SWIPE_THRESHOLD = 200;
   
@@ -44,7 +46,9 @@ const SwipePage = () => {
           occupation: user.occupation,
           bio: user.bio,
           interests: [],
-          profileUrl: user.profile_url
+          profileUrl: user.profile_url,
+          roleId: user.role.role_id,
+          roleName: user.role.name
         })));
       }
     } catch (err) {
@@ -85,10 +89,19 @@ const SwipePage = () => {
       setSwipeDirection(offset > 0 ? 'right' : 'left');
     }
 
-    if (Math.abs(offset) > SWIPE_THRESHOLD) {
+    if (offset > SWIPE_THRESHOLD) {
       setIsDisappearing(true);
       setIsDragging(false);
-      handleSwipe(offset > 0 ? 'right' : 'left');
+      handleSwipe('right');
+    } else if (offset < -SWIPE_THRESHOLD) {
+      setIsDragging(false);
+      if (profiles[currentProfileIndex]?.roleName === 'gabriel') {
+        setShowConfirmation(true);
+      } else {
+        handleSwipe('left');
+      }
+      setDragOffset(0);
+      setSwipeDirection(null);
     }
   };
 
@@ -103,6 +116,11 @@ const SwipePage = () => {
   };
 
   const handleSwipe = async (direction) => {
+    if (direction === 'left' && !isDisappearing && profiles[currentProfileIndex]?.roleName === 'gabriel') {
+      setShowConfirmation(true);
+      return;
+    }
+
     const offset = direction === 'left' ? -SWIPE_THRESHOLD * 1.5 : SWIPE_THRESHOLD * 1.5;
     setDragOffset(offset);
     setIsDisappearing(true);
@@ -173,9 +191,17 @@ const SwipePage = () => {
   };
 
   const ProfileCard = ({ profile, expanded = false }) => {
+    const getGenderColor = (roleId) => {
+      return roleId === 1 ? 'bg-pink-500' : 'bg-blue-500';
+    };
+
+    const getGenderText = (roleId) => {
+      return roleId === 1 ? 'Female' : 'Male';
+    };
+
     return (
       <div className={`space-y-4 ${expanded ? 'p-4' : ''}`}>
-        <div className={`${expanded ? 'h-96' : 'h-64'} w-full rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden`}>
+        <div className={`${expanded ? 'h-96' : 'h-64'} w-full rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden relative`}>
           {profile.profileUrl ? (
             <img 
               src={profile.profileUrl} 
@@ -185,6 +211,9 @@ const SwipePage = () => {
           ) : (
             <UserCircle className="w-32 h-32 text-[#318CE7]" />
           )}
+          <span className={`absolute top-2 right-2 px-3 py-1 rounded-full text-white text-sm ${getGenderColor(profile.roleId)}`}>
+            {getGenderText(profile.roleId)}
+          </span>
         </div>
 
         <div className="space-y-4">
@@ -278,7 +307,7 @@ const SwipePage = () => {
 
   if (error && profiles.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#BEB7A4]">
+      <div className="h-screen flex items-center justify-center bg-[#BEB7A4]">
         <Card className="w-full max-w-md m-4 bg-[#FFFFFC]">
           <CardContent className="p-6 text-center">
             <p className="text-red-500 mb-4 text-lg">{error}</p>
@@ -298,38 +327,56 @@ const SwipePage = () => {
 
   return (
     <div 
-      className="min-h-screen p-4 relative transition-colors duration-300" 
+      className="h-screen overflow-hidden flex flex-col justify-center relative transition-colors duration-300" 
       style={getBackgroundStyle()}
     >
-      <div className="max-w-md mx-auto relative h-[600px]">
-        {profiles.length > 0 && currentProfileIndex < profiles.length ? (
-          <>
-            <Card 
-              className="absolute w-full transform bg-[#FFFFFC] cursor-grab active:cursor-grabbing shadow-xl"
-              style={getCardStyle()}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-            >
-              <CardContent className="p-6">
-                <ProfileCard profile={currentProfile} />
-              </CardContent>
-            </Card>
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="w-full max-w-md relative h-[600px]">
+          {profiles.length > 0 && currentProfileIndex < profiles.length ? (
+            <>
+              <Card 
+                className="absolute w-full transform bg-[#FFFFFC] cursor-grab active:cursor-grabbing shadow-xl"
+                style={getCardStyle()}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+              >
+                <CardContent className="p-6">
+                  <ProfileCard profile={currentProfile} />
+                </CardContent>
+              </Card>
 
-            <Dialog open={showProfile} onOpenChange={setShowProfile}>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <ProfileCard profile={currentProfile} expanded={true} />
-              </DialogContent>
-            </Dialog>
-          </>
-        ) : (
-          <EmptyStateMessage />
-        )}
+              <Dialog open={showProfile} onOpenChange={setShowProfile}>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <ProfileCard profile={currentProfile} expanded={true} />
+                </DialogContent>
+              </Dialog>
+
+              {profiles[currentProfileIndex]?.roleName === 'gabriel' && (
+                <AreYouSure
+                  isOpen={showConfirmation}
+                  onClose={() => {
+                    setShowConfirmation(false);
+                    setDragOffset(0);
+                    setSwipeDirection(null);
+                  }}
+                  onConfirm={() => {
+                    setShowConfirmation(false);
+                    handleSwipe('left');
+                  }}
+                  profile={currentProfile}
+                />
+              )}
+            </>
+          ) : (
+            <EmptyStateMessage />
+          )}
+        </div>
       </div>
 
       {currentProfileIndex < profiles.length && (
-        <div className="fixed bottom-8 left-0 right-0">
+        <div className="absolute bottom-24 left-0 right-0 z-50">
           <div className="flex justify-center gap-4">
             <Button 
               size="lg" 
@@ -354,4 +401,4 @@ const SwipePage = () => {
   );
 };
 
-export default SwipePage;
+export default SwipePage

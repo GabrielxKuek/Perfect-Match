@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { MessageCircle, Heart, MoreVertical, UserCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getUserMatches, getAdminMessages } from '../../services/api/chat';
 import ChatDialog from '../../components/chat/ChatDialog';
+import LoadingSpinner from '../../components/utils/LoadingSpinner';
 
 // Type definitions
 const MatchType = PropTypes.shape({
@@ -98,6 +99,10 @@ const ChatPage = () => {
   console.log('Filtered other messages:', otherMessages);
 
   if (error) {
+    MessagesList.propTypes = {
+      messages: PropTypes.arrayOf(MatchType).isRequired,
+    };
+  
     return (
       <div className="min-h-screen p-4 flex items-center justify-center" style={{ backgroundColor: '#BEB7A4' }}>
         <Card className="p-6 max-w-md w-full" style={{ backgroundColor: '#FFFFFC' }}>
@@ -108,13 +113,7 @@ const ChatPage = () => {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen p-4 flex items-center justify-center" style={{ backgroundColor: '#BEB7A4' }}>
-        <Card className="p-6 max-w-md w-full" style={{ backgroundColor: '#FFFFFC' }}>
-          <p className="text-center">Loading messages...</p>
-        </Card>
-      </div>
-    );
+    return <LoadingSpinner message="Loading messages..." />;
   }
 
   const MessagesList = ({ messages }) => (

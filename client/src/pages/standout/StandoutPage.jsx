@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getGabrielProfiles, createMatch } from '../../services/api/user'; // Adjust the import path as necessary
+import LoadingSpinner from '../../components/utils/LoadingSpinner';
+import { getGabrielProfiles, createMatch } from '../../services/api/user';
 import { ChevronLeft, ChevronRight, Heart, Briefcase } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -63,25 +64,21 @@ const StandoutPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <p className="text-xl font-medium text-gray-800">Loading profiles...</p>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#BEB7A4' }}>
         <p className="text-xl font-medium text-red-600">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen" style={{ backgroundColor: '#BEB7A4' }}>
       <div className="max-w-6xl mx-auto py-12 px-4">
-        <h1 className="text-4xl font-bold mb-8 text-gray-900">Standout Profiles</h1>
+        <h1 className="text-4xl font-bold mb-8 text-black">Standout Profiles</h1>
         
         <div className="relative">
           <div 
@@ -94,7 +91,7 @@ const StandoutPage = () => {
                 key={profile.username}
                 className="snap-center shrink-0 first:pl-4 last:pr-4"
               >
-                <Card className="w-80 h-96 bg-white">
+                <Card className="w-80 h-96 shadow-lg backdrop-blur-sm" style={{ backgroundColor: '#FFFFFC' }}>
                   <CardContent className="p-4 h-full flex flex-col">
                     <div className="relative w-72 h-48 mb-4 flex-shrink-0">
                       <img 
@@ -104,13 +101,15 @@ const StandoutPage = () => {
                       />
                       <button 
                         onClick={() => handleMatch(profile.username)}
-                        className={`absolute top-4 right-4 p-2 rounded-full transition-colors duration-300 hover:bg-opacity-100 
-                          ${matchStatus[profile.username] === 'matched' 
-                            ? 'bg-green-500' 
+                        className={`absolute top-4 right-4 p-2 rounded-full transition-colors duration-300 hover:bg-opacity-100`}
+                        style={{ 
+                          backgroundColor: matchStatus[profile.username] === 'matched' 
+                            ? '#FF3F00' 
                             : matchStatus[profile.username] === 'error'
-                            ? 'bg-red-500'
-                            : 'bg-blue-500'} 
-                          bg-opacity-90`}
+                            ? '#FF3F00'
+                            : '#FF7F11',
+                          opacity: 0.9
+                        }}
                       >
                         <Heart 
                           className={`w-6 h-6 text-white ${matchStatus[profile.username] === 'matched' ? 'fill-current' : ''}`} 
@@ -119,14 +118,14 @@ const StandoutPage = () => {
                     </div>
                     
                     <div className="flex flex-col flex-grow space-y-3">
-                      <h2 className="text-xl font-bold text-gray-900 line-clamp-1">{profile.name}</h2>
+                      <h2 className="text-xl font-bold text-black line-clamp-1">{profile.name}</h2>
                       
                       <div className="flex items-center gap-2">
-                        <Briefcase className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                        <p className="text-gray-600 font-medium line-clamp-1">{profile.occupation}</p>
+                        <Briefcase className="w-4 h-4 text-black flex-shrink-0" />
+                        <p className="text-black font-medium line-clamp-1">{profile.occupation}</p>
                       </div>
                       
-                      <p className="text-sm text-gray-700 line-clamp-3">{profile.bio}</p>
+                      <p className="text-sm text-black line-clamp-3">{profile.bio}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -138,14 +137,16 @@ const StandoutPage = () => {
             <>
               <button 
                 onClick={() => scroll('left')}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 p-3 rounded-full shadow-lg transition-transform duration-300 hover:scale-105 bg-red-500"
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 p-3 rounded-full shadow-lg backdrop-blur-sm transition-transform duration-300 hover:scale-105"
+                style={{ backgroundColor: '#FF3F00' }}
               >
                 <ChevronLeft className="w-7 h-7 text-white" />
               </button>
               
               <button 
                 onClick={() => scroll('right')}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 p-3 rounded-full shadow-lg transition-transform duration-300 hover:scale-105 bg-red-500"
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 p-3 rounded-full shadow-lg backdrop-blur-sm transition-transform duration-300 hover:scale-105"
+                style={{ backgroundColor: '#FF3F00' }}
               >
                 <ChevronRight className="w-7 h-7 text-white" />
               </button>
