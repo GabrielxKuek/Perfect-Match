@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { UserCircle, Send, AlertCircle } from 'lucide-react';
 import { getConversation, sendMessage } from '../../services/api/chat';
 
-// Type definitions
 const MessageType = PropTypes.shape({
   message_id: PropTypes.number.isRequired,
   content: PropTypes.string.isRequired,
@@ -87,8 +86,8 @@ const ChatDialog = ({
     if (!newMessage.trim() || !selectedUser || isSubmitting) return;
 
     const messageContent = newMessage.trim();
-    setNewMessage(''); // Clear input immediately
-    setIsSubmitting(true); // Prevent duplicate submissions
+    setNewMessage('');
+    setIsSubmitting(true);
 
     try {
       const response = await sendMessage(
@@ -101,7 +100,7 @@ const ChatDialog = ({
     } catch (error) {
       console.error('Error sending message:', error);
       setError('Failed to send message. Please try again.');
-      setNewMessage(messageContent); // Restore message if failed
+      setNewMessage(messageContent);
     } finally {
       setIsSubmitting(false);
     }
@@ -174,7 +173,7 @@ const ChatDialog = ({
                       : 'bg-gray-200 text-black rounded-r-lg rounded-tl-lg'
                   } px-4 py-2`}
                 >
-                  {isAdminView && (
+                  {isAdminView && message.receiver && (
                     <p className="text-xs mb-1 opacity-75">
                       {message.sender.username === selectedUser.senderToImpersonate 
                         ? 'Sent by ' + message.sender.name
